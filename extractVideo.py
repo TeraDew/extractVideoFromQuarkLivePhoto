@@ -26,7 +26,6 @@ class Photo():
         self.path = path
         self.path_without_ext = os.path.splitext(self.path)[0]
 
-        self.path = path
         with open(path, 'rb') as f:            
             self.data = f.read()
             self.file_size = f.tell()
