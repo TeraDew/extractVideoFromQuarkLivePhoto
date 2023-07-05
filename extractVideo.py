@@ -5,20 +5,9 @@
     Under MIT licence you can do whatever you want.
     从夸克网盘备份的实况照片中提取视频。
 '''
-import binascii
 import os
 import sys
-
-
-def get_video_size(size_string: str) -> int:
-    '''
-    reverse little endian
-    '''
-    if len(size_string) % 2 != 0:
-        raise ValueError('file size string not legal. 文件长度不合法')
-    if len(size_string) == 2:
-        return size_string
-    return size_string[-2:]+get_video_size(size_string[:-2])
+import struct
 
 
 class Photo():
@@ -26,15 +15,15 @@ class Photo():
         self.path = path
         self.path_without_ext = os.path.splitext(self.path)[0]
 
-        with open(path, 'rb') as f:            
+        self.path = path
+        with open(path, 'rb') as f:
             self.data = f.read()
             self.file_size = f.tell()
 
     def is_live_photo(self):
-        tail = binascii.hexlify(self.data)[-24:]
-        if tail[:-8] == b'6c69767001120000':  # livp....
-            self.video_size = int(
-                get_video_size(tail[-8:].decode('utf-8')), 16)
+        tail = self.data[-12:]
+        if tail[:-8] == b'livp':  # livp....
+            self.video_size, = struct.unpack("<i", tail[-4:])
             self.image_size = self.file_size-self.video_size-12
             return True
         else:
